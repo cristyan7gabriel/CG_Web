@@ -49,7 +49,7 @@ const Header = () => {
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="md:hidden absolute top-full left-0 w-full glass-panel py-5 px-6 flex flex-col gap-4 border-t border-white/5"
+          className="md:hidden absolute top-full left-0 w-full bg-cgweb-bg/95 backdrop-blur-2xl shadow-2xl py-6 px-6 flex flex-col gap-5 border-t border-white/10"
         >
           <a href="#home" onClick={() => setMobileMenuOpen(false)} className="text-lg hover:text-cgweb-primary text-white">Home</a>
           <a href="#about" onClick={() => setMobileMenuOpen(false)} className="text-lg hover:text-cgweb-primary text-white">Sobre</a>
