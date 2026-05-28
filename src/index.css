@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", sans-serif;
+  
+  --color-cgweb-bg: #00060D;
+  --color-cgweb-bgSecondary: #031226;
+  --color-cgweb-bgTertiary: #011140;
+  --color-cgweb-primary: #165FF2;
+  --color-cgweb-secondary: #0D65D9;
+  --color-cgweb-textMain: #FFFFFF;
+  --color-cgweb-textMuted: #E2E8F0;
+}
+
+@layer base {
+  html, body {
+    background-color: var(--color-cgweb-bg);
+    color: var(--color-cgweb-textMain);
+    font-family: var(--font-sans);
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background-color: color-mix(in srgb, var(--color-cgweb-bgTertiary) 30%, transparent);
+    backdrop-filter: blur(12px);
+    border: 1px solid color-mix(in srgb, white 5%, transparent);
+  }
+  
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, var(--color-cgweb-primary), var(--color-cgweb-secondary));
+  }
+}
