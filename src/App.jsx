@@ -8,56 +8,57 @@ import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 
 function App() {
-  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    let animationFrameId;
-    let lastTargetTime = -1;
-
-    // Hack essencial para navegadores modernos (especialmente Chrome/Safari):
-    // Forçar um pequeno "play()" e "pause()" para destravar o controle de currentTime do vídeo
-    const unlockVideo = async () => {
-      if (videoRef.current) {
-        try {
-          // O vídeo é mutado, então o autoplay deve ser permitido
-          await videoRef.current.play();
-          videoRef.current.pause();
-        } catch (error) {
-          console.warn("Aviso: Navegador bloqueou o play inicial.", error);
-        }
-      }
-    };
+    const frameCount = 160;
+    const images = [];
     
-    unlockVideo();
+    // Preload all images
+    for (let i = 1; i <= frameCount; i++) {
+      const img = new Image();
+      const paddedIndex = i.toString().padStart(3, '0');
+      img.src = `/back/frame_${paddedIndex}.jpg`;
+      images.push(img);
+    }
+
+    let animationFrameId;
+    let lastFrameIndex = -1;
 
     const renderLoop = () => {
-      if (videoRef.current) {
-        const dur = videoRef.current.duration;
+      if (canvasRef.current && images.length > 0) {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
         
-        // Garante que a duração existe, não é NaN e nem Infinity
-        if (dur && !isNaN(dur) && isFinite(dur)) {
-           // Lemos o scroll da janela e a altura total do corpo do site
-           const scrollTop = window.scrollY || document.documentElement.scrollTop;
-           const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-           
-           if (docHeight > 0) {
-             const scrollPercent = scrollTop / docHeight;
-             const targetTime = scrollPercent * dur;
-             
-             // Só aplica o currentTime se a mudança for significativa (evita lag e engasgos de hardware)
-             if (Math.abs(lastTargetTime - targetTime) > 0.08) {
-                 videoRef.current.currentTime = targetTime;
-                 lastTargetTime = targetTime;
-             }
-           }
+        let frameIndex = 0;
+        if (docHeight > 0) {
+          const scrollPercent = Math.max(0, Math.min(1, scrollTop / docHeight));
+          frameIndex = Math.floor(scrollPercent * (frameCount - 1));
+        }
+
+        const img = images[frameIndex];
+        if (img && img.complete && frameIndex !== lastFrameIndex) {
+          const canvas = canvasRef.current;
+          const context = canvas.getContext('2d');
+          
+          // Set canvas intrinsic size to match the first loaded image's size
+          if (canvas.width !== img.width && img.width > 0) {
+            canvas.width = img.width;
+            canvas.height = img.height;
+          }
+
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(img, 0, 0, canvas.width, canvas.height);
+          lastFrameIndex = frameIndex;
+        } else if (img && !img.complete && frameIndex !== lastFrameIndex) {
+            // Re-evaluate next frame if image is still loading
+            lastFrameIndex = -1;
         }
       }
       
-      // O loop contínuo garante que o tracking de scroll nunca falhe
       animationFrameId = requestAnimationFrame(renderLoop);
     };
 
-    // Inicia o tracking contínuo
     animationFrameId = requestAnimationFrame(renderLoop);
 
     return () => cancelAnimationFrame(animationFrameId);
@@ -69,15 +70,11 @@ function App() {
       
       {/* Video Background Scrubbing on Scroll */}
       <div className="fixed inset-0 z-0 pointer-events-none bg-black">
-        <video 
-          ref={videoRef}
+        <canvas 
+          ref={canvasRef}
           className="w-full h-full object-cover opacity-30"
           style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-          src="/back/Visão_aérea_descendo_entre_prédios_202605272209.mp4"
-          muted
-          playsInline
-          preload="auto"
-        ></video>
+        ></canvas>
         {/* Dark overlay to keep the aesthetic and contrast */}
         <div className="absolute inset-0 bg-cgweb-bg/50"></div>
       </div>
